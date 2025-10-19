@@ -11,7 +11,7 @@
 // ======================
 import express from "express";
 import multer from "multer";
-import pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import dayjs from "dayjs";
 import os from "os";
 
