@@ -36,20 +36,20 @@ const normSpaces = (s) => s.replace(/[^\S\r\n]+/g, " ").replace(/\s{2,}/g, " ").
 /* ----------------------- pdf.js helpers ----------------------- */
 // Lê todas as páginas e retorna vetor de "items" com {str, x, y, w, h, page}
 async function readPdfItems(buffer) {
-  // Garante que sempre enviamos um Uint8Array, mesmo se for Buffer do Node
-  let data;
-  if (buffer instanceof Uint8Array) {
-    data = buffer;
-  } else if (buffer instanceof ArrayBuffer) {
-    data = new Uint8Array(buffer);
+  // 🔧 Converte de forma segura qualquer tipo de input em Uint8Array
+  let uint8;
+  if (buffer instanceof Uint8Array && !(buffer instanceof Buffer)) {
+    uint8 = buffer;
   } else if (Buffer.isBuffer(buffer)) {
-    data = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
+    uint8 = new Uint8Array(buffer); // <- cópia explícita (garantido funcionar no Render)
+  } else if (buffer instanceof ArrayBuffer) {
+    uint8 = new Uint8Array(buffer);
   } else {
-    throw new Error("Tipo de dados inválido: forneça um arquivo PDF binário (Buffer ou Uint8Array)");
+    throw new Error("Tipo de dados inválido: forneça Buffer ou Uint8Array");
   }
 
   const pdf = await pdfjsLib.getDocument({
-    data,
+    data: uint8,
     isEvalSupported: false,
     disableFontFace: true
   }).promise;
@@ -72,7 +72,6 @@ async function readPdfItems(buffer) {
   }
   return allItems;
 }
-
 
 // Agrupa itens por linha (aproximação por y) e ordena por x
 function groupLines(items, tolerance = 2.0) {
